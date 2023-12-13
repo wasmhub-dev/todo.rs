@@ -2,6 +2,7 @@ mod state;
 
 use std::rc::Rc;
 
+use state::{State, Task};
 use wasm_bindgen::prelude::*;
 use web_sys::{HtmlInputElement, HtmlButtonElement, HtmlElement};
 use gloo_events::EventListener;
@@ -10,11 +11,12 @@ use gloo::utils::document;
 use gloo::storage::{LocalStorage, Storage};
 use gloo::dialogs::alert;
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug)]
 struct TodoApp {
     input_box: HtmlInputElement,
     button: HtmlButtonElement,
     list: HtmlElement,
+    state: State,
 }
 
 impl TodoApp {
@@ -29,10 +31,14 @@ impl TodoApp {
             .dyn_into::<HtmlElement>()
             .unwrap();
 
+        let saved_json: String = LocalStorage::get("todo").unwrap_or_default();
+        let state = serde_json::from_str(&saved_json).unwrap_or_else(|_| State::new());
+
         Self {
             input_box,
             button,
-            list
+            list,
+            state,
         }
     }
 
@@ -52,15 +58,24 @@ impl TodoApp {
     }
 
     fn save_data(&self) {
-        let _ = LocalStorage::set("todo_list", &self.list.inner_html());
+        let json = serde_json::to_string(&self.state).unwrap();
+        let _ = LocalStorage::set("todo_list", json);
+    }
+
+    fn create_task_html(&self, task: &Task) -> String {
+        format!("
+            <li class=\"{}\">
+                {}
+                <span>&times;</span>
+            </li>)
+        ", if task.completed { "checked" } else { "" }, task.name)
     }
 
     fn show_task(&self) {
-        let data:Option<String> = LocalStorage::get("todo_list").unwrap_or_default();
-        
-        if let Some(data) = data {
-            self.list.set_inner_html(&data);
-        }
+        let html = self.state.tasks.iter()
+            .map(|task| self.create_task_html(task))
+            .collect::<Vec<String>>().join("\n");
+        self.list.set_inner_html(&html);
     }
 }
 
