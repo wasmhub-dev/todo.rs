@@ -74,7 +74,7 @@ impl TodoApp {
 
     fn save_data(&self) {
         let json = serde_json::to_string(&self.state).unwrap();
-        let _ = LocalStorage::set("todo_list", json);
+        let _ = LocalStorage::set("todo", json);
     }
 
     fn create_task_html(&self, task: &Task) -> String {
