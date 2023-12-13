@@ -50,11 +50,11 @@ impl TodoApp {
     }
 
     fn save_data(&self) {
-        LocalStorage.set("todo_list", &self.list.inner_html());
+        LocalStorage::set("todo_list", &self.list.inner_html());
     }
 
     fn show_task(&self) {
-        let data = LocalStorage.get("todo_list");
+        let data = LocalStorage::get("todo_list");
         match data {
             Ok(Some(data)) => {
                 self.list.set_inner_html(&data);
