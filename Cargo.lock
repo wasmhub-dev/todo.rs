@@ -582,6 +582,8 @@ version = "0.1.0"
 dependencies = [
  "gloo",
  "gloo-events",
+ "serde",
+ "serde_json",
  "wasm-bindgen",
  "web-sys",
 ]

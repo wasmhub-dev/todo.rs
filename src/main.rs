@@ -1,10 +1,12 @@
+mod state;
+
 use std::rc::Rc;
 
 use wasm_bindgen::prelude::*;
 use web_sys::{HtmlInputElement, HtmlButtonElement, HtmlElement};
 use gloo_events::EventListener;
 use gloo::console::log;
-use gloo::utils::{window, document};
+use gloo::utils::document;
 use gloo::storage::{LocalStorage, Storage};
 use gloo::dialogs::alert;
 
@@ -50,16 +52,14 @@ impl TodoApp {
     }
 
     fn save_data(&self) {
-        LocalStorage::set("todo_list", &self.list.inner_html());
+        let _ = LocalStorage::set("todo_list", &self.list.inner_html());
     }
 
     fn show_task(&self) {
-        let data = LocalStorage::get("todo_list");
-        match data {
-            Ok(Some(data)) => {
-                self.list.set_inner_html(&data);
-            },
-            _ => {}
+        let data:Option<String> = LocalStorage::get("todo_list").unwrap_or_default();
+        
+        if let Some(data) = data {
+            self.list.set_inner_html(&data);
         }
     }
 }
