@@ -23,5 +23,7 @@ features = [
   'console',
   'HtmlCollection',
   'HtmlInputElement',
-  'HtmlButtonElement'
+  'HtmlButtonElement',
+  'HtmlUListElement',
+  "NodeList"
 ]
