@@ -1,5 +1,3 @@
-use crate::state::{State, Task};
-
 use wasm_bindgen::prelude::*;
 use web_sys::{HtmlInputElement, HtmlButtonElement, HtmlElement, HtmlUListElement};
 use gloo_events::EventListener;
@@ -12,7 +10,6 @@ pub struct TodoApp {
     input_box: HtmlInputElement,
     button: HtmlButtonElement,
     list: HtmlUListElement,
-    state: State,
 }
 
 impl TodoApp {
@@ -27,14 +24,10 @@ impl TodoApp {
             .dyn_into::<HtmlUListElement>()
             .unwrap();
 
-        let saved_json: String = LocalStorage::get("todo").unwrap_or_default();
-        let state = serde_json::from_str(&saved_json).unwrap_or_else(|_| State::new());
-
         let todo_app = Self {
             input_box,
             button,
             list,
-            state,
         };
 
         let mut todo_app_clone = todo_app.clone();
@@ -61,33 +54,36 @@ impl TodoApp {
         if self.input_box.value().is_empty() {
             let _ = alert("Please enter a task");
         } else {
-            let task_name = &self.input_box.value();
-            self.state.add(task_name.clone());
-            let task = self.state.tasks.last().unwrap();
+            let task = &self.input_box.value();
             let task_html = self.create_task_html(task);
             let _ = self.list.insert_adjacent_html("beforeend", &task_html);
+            let _ = &self.input_box.set_value("");
             self.save_data();
         }
     }
 
     fn save_data(&self) {
-        let json = serde_json::to_string(&self.state).unwrap();
-        let _ = LocalStorage::set("todo", json);
+        let _ = LocalStorage::set("todo_html", self.list.inner_html());
     }
 
-    fn create_task_html(&self, task: &Task) -> String {
+    fn create_task_html(&self, task: &String) -> String {
         format!("
-            <li class=\"{}\">
+            <li>
                 {}
                 <span>&times;</span>
             </li>
-        ", if task.completed { "checked" } else { "" }, task.name)
+        ", task)
     }
 
     pub fn show_task(&self) {
-        let html = self.state.tasks.iter()
-            .map(|task| self.create_task_html(task))
-            .collect::<Vec<String>>().join("\n");
-        self.list.set_inner_html(&html);
+        let data:Result<String, _> = LocalStorage::get("todo_html");
+
+        match data {
+            Ok(html) => {
+                self.list.set_inner_html(&html);
+            },
+            _ => {}
+            
+        }
     }
 }

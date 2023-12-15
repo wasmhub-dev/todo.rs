@@ -1,4 +1,3 @@
-mod state;
 mod todo;
 
 use wasm_bindgen::prelude::*;
